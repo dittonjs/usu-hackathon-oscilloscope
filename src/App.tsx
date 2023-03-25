@@ -3,8 +3,8 @@ import { Knob } from './components/Knob';
 import { findNLargestValues } from './lib/findLargestNValues';
 import WhiteNoiseWorklet from "./lib/WhiteNoiseWorklet.js?url";
 
-const NOTES = ["C", "C", "D", "D", "E", "F", "F", "G", "G", "A", "A", "B"];
-
+const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+let prevNote = "";
 function noteFromPitch( frequency: number ) {
 	var noteNum = 12 * (Math.log( frequency / 440 )/Math.log(2) );
 	return Math.round( noteNum ) + 69;
@@ -80,23 +80,31 @@ function App() {
     const largestIndexes = findNLargestValues(3, frequencyDataArrayRef.current);
     canvasFrequencyContextRef.current.font = '20px Arial'
     canvasFrequencyContextRef.current.fillText(`Dominant Frequency: ${(48000 / 2 / analyzerNode.frequencyBinCount) * largestIndexes[0]}Hz`, 50, 50);
-    const startIndex = Math.floor(100 / (48000 / 2 / analyzerNode.frequencyBinCount)) + 1
+    const startIndex = Math.floor(100 / (48000 / 2 / analyzerNode.frequencyBinCount))
     //Draw spectrum
-    const barWidth = (width / (bufferLength - startIndex)) * 2.5;
+    const barWidth = (width / (bufferLength - startIndex + 1));
     let posX = 0;
     let lastNote = '';
+    let nextLetter = -1;
     for (let i = startIndex; i < bufferLength; i++) {
       const barHeight = (frequencyDataArrayRef.current[i] + 140) * 2;
       canvasFrequencyContextRef.current.fillStyle = `rgb(100, 50, ${Math.floor(barHeight + 100)})`;
       canvasFrequencyContextRef.current.fillRect(
         posX,
         height - barHeight / 2,
-        barWidth,
+        barWidth - 1,
         barHeight / 2
       );
-      const note = noteFromPitch((48000 / 2 / analyzerNode.frequencyBinCount) * i);
+      const note = noteFromPitch((48000 / 2 / (analyzerNode.frequencyBinCount - startIndex)) * i);
       const noteName = NOTES[note%12];
-      if (noteName && noteName !== lastNote) {
+      if (noteName !== lastNote) {
+        let count = 0;
+        while(NOTES[noteFromPitch((48000 / 2 / (analyzerNode.frequencyBinCount - startIndex)) * (i+count))%12] == noteName) {
+          count ++;
+        }
+        nextLetter = i + Math.floor(count / 2);
+      }
+      if (noteName && i === nextLetter) {
         let shift = .3;
         if (sampleSizeRef.current > 4000) {
           shift = .89;
@@ -108,14 +116,14 @@ function App() {
           shift = 4.3;
         }
         if (sampleSizeRef.current > 32000) {
-          shift = 9.8;
+          shift = 10;
         }
         canvasFrequencyContextRef.current.font = '12px Arial'
-        canvasFrequencyContextRef.current.fillText(noteName, posX + shift * barWidth, 100);
+        canvasFrequencyContextRef.current.fillText(noteName, posX, noteName.includes("#") ? 80 : 100);
         lastNote = noteName;
       }
 
-      posX += barWidth + 1;
+      posX += barWidth;
     }
   }, []);
 
