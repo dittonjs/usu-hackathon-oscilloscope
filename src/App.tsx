@@ -3,11 +3,12 @@ import { Knob } from './components/Knob';
 import { findNLargestValues } from './lib/findLargestNValues';
 import WhiteNoiseWorklet from "./lib/WhiteNoiseWorklet.js?url";
 
+//borrowed from https://github.com/cwilso/PitchDetect/blob/main/js/pitchdetect.js
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 let prevNote = "";
 function noteFromPitch( frequency: number ) {
-	var noteNum = 12 * (Math.log( frequency / 440 )/Math.log(2) );
-	return Math.round( noteNum ) + 69;
+  const noteNum = 12 * (Math.log( frequency / 440 )/Math.log(2) );
+  return Math.round( noteNum ) + 69;
 }
 
 
