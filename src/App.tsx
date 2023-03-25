@@ -97,18 +97,21 @@ function App() {
       const note = noteFromPitch((48000 / 2 / analyzerNode.frequencyBinCount) * i);
       const noteName = NOTES[note%12];
       if (noteName && noteName !== lastNote) {
-        let shift = 8;
+        let shift = .3;
+        if (sampleSizeRef.current > 4000) {
+          shift = .89;
+        }
         if (sampleSizeRef.current > 8000) {
-          shift = 16;
+          shift = 2.4;
         }
         if (sampleSizeRef.current > 16000) {
-          shift = 18;
+          shift = 4.3;
         }
         if (sampleSizeRef.current > 32000) {
-          shift = 22;
+          shift = 9.8;
         }
         canvasFrequencyContextRef.current.font = '12px Arial'
-        canvasFrequencyContextRef.current.fillText(noteName, posX + shift, 100);
+        canvasFrequencyContextRef.current.fillText(noteName, posX + shift * barWidth, 100);
         lastNote = noteName;
       }
 
@@ -136,6 +139,7 @@ function App() {
     } else if(source === "sine" || source === "square" || source === "sawtooth" || source === "triangle") {
       const osc = context.createOscillator();
       osc.type = source;
+      osc.frequency.value = frequency;
       osc.start();
       audioSource = osc;
     }
